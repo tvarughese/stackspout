@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: it-tools
+  namespace: stackspout
+spec:
+  releaseName: it-tools
+  chart:
+    spec:
+      chart: it-tools
+      version: 1.0 # TODO
+      sourceRef:
+        kind: HelmRepository
+        name: it-tools
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-it-tools-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-it-tools-override
+      optional: true
+    - kind: Secret
+      name: stackspin-it-tools-override
+      optional: true
