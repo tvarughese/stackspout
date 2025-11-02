@@ -1,0 +1,30 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: zammad
+  namespace: stackspout
+spec:
+  releaseName: zammad
+  chart:
+    spec:
+      chart: zammad
+      version: 12.5.1 # 14.0.1 requires db upgrade
+      # Migration: https://github.com/zammad/zammad-helm/tree/main/zammad#upgrading
+      # Versions: https://github.com/zammad/zammad-helm/blob/main/zammad/Chart.yaml
+      # History: https://github.com/zammad/zammad-helm/releases
+      sourceRef:
+        kind: HelmRepository
+        name: zammad
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-zammad-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-zammad-override
+      optional: true
+    - kind: Secret
+      name: stackspin-zammad-override
+      optional: true

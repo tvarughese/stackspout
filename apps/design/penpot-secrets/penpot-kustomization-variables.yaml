@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-penpot-kustomization-variables
+  namespace: flux-system
+data:
+  penpot_domain: design.${domain}

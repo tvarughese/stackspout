@@ -1,0 +1,11 @@
+---
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-zammad-variables
+  namespace: flux-system
+spec:
+  fields:
+  - fieldName: redis_password
+  - fieldName: postgresql_password
+  - fieldName: postgresql_postgres_password

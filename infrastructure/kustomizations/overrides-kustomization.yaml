@@ -1,0 +1,18 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: stackspout-overrides
+  namespace: flux-system
+spec:
+  interval: 2m
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  path: ./overrides
+  prune: true
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      - kind: ConfigMap
+        name: stackspin-zulip-kustomization-variables

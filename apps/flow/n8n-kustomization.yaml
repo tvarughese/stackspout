@@ -1,0 +1,35 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: n8n
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  path: ./apps/flow/n8n
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  dependsOn:
+    - name: flux
+    - name: local-path-provisioner
+    - name: n8n-secrets
+    - name: nginx
+    - name: single-sign-on
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      - kind: ConfigMap
+        name: stackspin-n8n-kustomization-variables
+      - kind: Secret
+        name: stackspin-n8n-variables
+      # OIDC
+      - kind: Secret
+        name: stackspin-n8n-oauth-variables
+      - kind: ConfigMap
+        name: stackspin-single-sign-on-kustomization-variables

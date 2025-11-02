@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-vikunja-kustomization-variables
+  namespace: flux-system
+data:
+  vikunja_domain: do.${domain}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-vikunja-extra-kustomization-variables
+  namespace: flux-system
+data:
+  vikunja_extra_domain: do.${domain_extra}

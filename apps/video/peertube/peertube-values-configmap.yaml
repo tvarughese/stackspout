@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-peertube-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # https://git.lecygnenoir.info/LecygneNoir/peertube-helm/src/branch/master/values.yaml
+    commonLabels:
+      stackspin.net/backupSet: "peertube"
+    podLabels:
+      stackspin.net/backupSet: "peertube"
+    podAnnotations:
+      # TODO FIXME comma separation correct?
+      backup.velero.io/backup-volumes: "data,config"
+
+    persistence:
+      data:
+        enabled: true
+        existingClaim: peertube-data
+      config:
+        enabled: true
+        existingClaim: peertube-config
+
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/tls-acme: "true"
+      hosts:
+        - host: "${peertube_domain}"
+          paths:
+             - path: /
+               pathType: Prefix
+      tls:
+        - secretName: peertube-tls
+          hosts:
+            - "${peertube_domain}"
+
+    resources:
+      requests:
+        cup: 2
+        memory: 4Gi
+
+    environment:
+      hostname: "${peertube_domain}"
+      # TODO database
+      dbHostname: your.postgresql.hostname
+      dbUser: peertube
+      dbPassword: postgres
+      redisHostname: redis
+      redisAuth: redispassword
+      #smtpenabled: "${outgoing_mail_enabled}"
+      smtpHostname: "${outgoing_mail_smtp_host}"
+      smtpPort: "${outgoing_mail_smtp_port}"
+      smtpUser: "${outgoing_mail_smtp_user}"
+      smtpPassword: "${outgoing_mail_smtp_password}"
+      smtpFrom: "${outgoing_mail_from_address}"
+      admin: "${outgoing_mail_from_address}"
+
+    # TODO Adjust peertube OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

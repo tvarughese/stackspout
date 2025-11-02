@@ -1,0 +1,70 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: suitecrm
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  path: ./apps/people/suitecrm
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  dependsOn:
+    - name: flux
+    - name: local-path-provisioner
+    - name: suitecrm-secrets
+    - name: nginx
+    - name: single-sign-on
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      - kind: ConfigMap
+        name: stackspin-suitecrm-kustomization-variables
+      - kind: Secret
+        name: stackspin-suitecrm-variables
+      # OIDC
+      - kind: Secret
+        name: stackspin-suitecrm-oauth-variables
+      - kind: ConfigMap
+        name: stackspin-single-sign-on-kustomization-variables
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: suitecrm
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  path: ./apps/people/suitecrm
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  dependsOn:
+    - name: flux
+    - name: local-path-provisioner
+    - name: suitecrm-secrets
+    - name: nginx
+    - name: single-sign-on
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      #- kind: ConfigMap
+      #  name: stackspin-suitecrm-kustomization-variables
+      - kind: Secret
+        name: stackspin-suitecrm-variables
+      # OIDC
+      #- kind: Secret
+      #  name: stackspin-suitecrm-oauth-variables
+      #- kind: ConfigMap
+      #  name: stackspin-single-sign-on-kustomization-variables

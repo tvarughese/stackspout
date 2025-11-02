@@ -1,0 +1,35 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: taiga
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  path: ./apps/sprint/taiga
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  dependsOn:
+    - name: flux
+    - name: local-path-provisioner
+    - name: taiga-secrets
+    - name: nginx
+    - name: single-sign-on
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      - kind: ConfigMap
+        name: stackspin-taiga-kustomization-variables
+      - kind: Secret
+        name: stackspin-taiga-variables
+      # OIDC
+      - kind: Secret
+        name: stackspin-taiga-oauth-variables
+      - kind: ConfigMap
+        name: stackspin-single-sign-on-kustomization-variables

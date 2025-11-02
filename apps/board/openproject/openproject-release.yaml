@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: openproject
+  namespace: stackspout
+spec:
+  releaseName: openproject
+  chart:
+    spec:
+      chart: openproject
+      version: 11.1.2
+      sourceRef:
+        kind: HelmRepository
+        name: openproject
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-openproject-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-openproject-override
+      optional: true
+    - kind: Secret
+      name: stackspin-openproject-override
+      optional: true

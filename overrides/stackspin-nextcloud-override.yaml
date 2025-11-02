@@ -1,0 +1,200 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: stackspin-apps
+  name: stackspin-nextcloud-override
+data:
+  # https://artifacthub.io/packages/helm/nextcloud/nextcloud#configuration
+  values.yaml: |
+    nextcloud:
+      nextcloud:
+        configs:
+          # https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#user-experience
+          #'defaultapp' => 'dashboard,files',
+          # https://github.com/moment/moment/tree/2.18.1/locale
+          #'default_language' => 'en_de', # https://www.transifex.com/explore/languages/
+          #'theme' => 'dark',
+          #'logo_url' => 'https://example.org',
+          defaults.config.php: |-
+            <?php
+            $CONFIG = [
+              'default_phone_region' => 'DE',
+              'default_locale' => 'en-gb',
+              'default_timezone' => 'Europe/Berlin',
+
+              'allow_user_to_change_display_name' => false,
+              'lost_password_link' => 'https://dashboard.${domain}/web/recovery',
+              'simpleSignUpLink.shown' => false,
+
+              'skeletondirectory' => '',
+            ];
+          previews.config.php: |-
+            <?php
+            $CONFIG = [
+              'enable_previews' => true,
+              'enabledPreviewProviders' => [
+                  'OC\\Preview\\BMP',
+                  'OC\\Preview\\GIF',
+                  'OC\\Preview\\JPEG',
+                  'OC\\Preview\\Krita',
+                  'OC\\Preview\\MarkDown',
+                  'OC\\Preview\\MP3',
+                  'OC\\Preview\\PNG',
+                  'OC\\Preview\\TXT',
+                  'OC\\Preview\\XBitmap',
+
+                  'OC\\Preview\\MSOfficeDoc',
+                  'OC\\Preview\\MSOffice2003',
+                  'OC\\Preview\\MSOffice2007',
+                  'OC\\Preview\\OpenDocument',
+                  'OC\\Preview\\StarOffice',
+                  'OC\\Preview\\EMF',
+
+                  'OC\\Preview\\SVG',
+                  'OC\\Preview\\TIFF',
+                  'OC\\Preview\\PDF',
+                  'OC\\Preview\\Illustrator',
+                  'OC\\Preview\\Photoshop',
+                  'OC\\Preview\\Postscript',
+                  'OC\\Preview\\Font',
+                  'OC\\Preview\\HEIC',
+                  'OC\\Preview\\TGA',
+                  'OC\\Preview\\SGI',
+
+                  'OC\\Preview\\Movie'
+                ]
+            ];
+          # https://help.nextcloud.com/t/preview-settings-not-described-well/197952/9
+        extraVolumes:
+          - name: nas-media
+            nfs:
+              server: 172.16.0.2
+              path: /mnt/b/media
+        extraVolumeMounts:
+          - name: nas-media
+            mountPath: /var/www/html/data/nfs/nas-media
+          #- name: vikunja-test-files
+          #  mountPath: /var/www/html/data/nfs/vikunja
+      #lifecycle:
+      #  postStartCommand:
+      #    - '/bin/bash'
+      #    - '-c'
+      #    - '/opt/setup.sh && /var/local/setup-apps.sh'
+    apps:
+      custom:
+        # == BASICS ==
+        # Not needed because there is SSO
+        #- name: bruteforcesettings
+        #  enabled: false
+        #- name: password_policy
+        #  enabled: false
+        - name: files_external
+          enabled: true
+        # == TOOLS ==
+        - name: photos
+          enabled: true
+        - name: recognize # https://apps.nextcloud.com/apps/recognize
+          enabled: false # from NC 32
+          version: "10.0.4"
+          raw_url: "https://github.com/nextcloud/recognize/releases/download/v{{ .version }}/recognize-{{ .version }}.tar.gz"
+        - name: memories
+          enabled: false # needs recognize
+          version: "v7.6.2"
+          github_repository: pulsejet/memories
+          release_filename: "memories.tar.gz"
+          # raw_url: "https://github.com/pulsejet/memories/releases/download/{{ .version }}/memories.tar.gz"
+        #- name: polls
+        #  enabled: false
+        #  #unsure - maybe redundant to forms?
+        #- name: forms
+        #  enabled: true
+        # == MANAGEMENT ==
+        #- name: deck
+        #  enabled: true
+        - name: tasks
+          enabled: true
+          version: "v0.16.1"
+          release_filename: "tasks.tar.gz"
+          github_repository: nextcloud/tasks
+        # == COMMUNICATION ==
+        - name: spreed
+          enabled: true
+          version: "v21.1.5"
+          raw_url: "https://github.com/nextcloud-releases/spreed/releases/download/{{ .version }}/spreed-{{ .version }}.tar.gz"
+        #- name: snappymail
+        #  enabled: true
+        #  version: "2.38.2"
+        #  raw_url: "https://snappymail.eu/repository/nextcloud/snappymail-{{ .version }}-nextcloud.tar.gz"
+        # == CONVENIENCE ==
+        # handy but abandoned - https://apps.nextcloud.com/apps/extract
+        #- name: extract
+        #  enabled: false
+        # == COLLABORATION ==
+        #- name: files_markdown
+        #  enabled: false
+        #- name: files_texteditor
+        #  enabled: true
+        #- name: notes
+        #  enabled: true
+        #  version: "v4.12.3"
+        #  raw_url: "https://github.com/nextcloud-releases/notes/releases/download/v4.12.3/notes-v4.12.3.tar.gz"
+        - name: drawio
+          enabled: true
+          version: "v3.1.0"
+          release_filename: "drawio-{{ .version }}.tar.gz"
+          github_repository: jgraph/drawio-nextcloud
+        # INCOMPATIBLE https://apps.nextcloud.com/apps/files_mindmap
+        # name: files_mindmap
+        #  enabled: true
+        - name: maps
+          enabled: true
+          version: "1.6.0"
+          raw_url: "https://github.com/nextcloud/maps/releases/download/v{{ .version }}/maps-{{ .version }}.tar.gz"
+          #release_filename: "maps-{{ .version }}.tar.gz"
+          #github_repository: nextcloud/maps
+        # == AESTHETICS ==
+        #- name: theming
+        #  enabled: true
+        #- name: apporder
+        #  enabled: false
+        - name: side_menu
+          enabled: true
+          version: "5.1.1"
+          raw_url: "https://gitnet.fr/deblan/side_menu/releases/download/{{ .version }}/side_menu_v{{ .version }}.tar.gz"
+        #- name: breezedark
+        #  enabled: false # Missing Support for NC30: https://github.com/mwalbeck/nextcloud-breeze-dark/releases
+        #version: "v29.0.0"
+        #release_filename: "breezedark.tar.gz"
+        #github_repository: mwalbeck/nextcloud-breeze-dark
+        #raw_url: https://github.com/mwalbeck/nextcloud-breeze-dark/releases/download/{{ .version }}/breezedark.tar.gz
+        #- name: unsplash
+        #  enabled: true
+        # == FLOW ==
+        - name: analytics
+          enabled: true
+          version: "6.0.1"
+          release_filename: "analytics-{{ .version }}.tar.gz"
+          github_repository: Rello/analytics
+          #raw_url: "https://github.com/Rello/analytics/releases/download/{{ .version }}/analytics-{{ .version }}.tar.gz"
+          #- name: workflow_pdf_converter
+          #  enabled: true
+          #- name: files_accesscontrol
+          #  enabled: false
+          #- name: files_automatedtagging
+          #  enabled: false
+          #- name: workflow_media_converter
+          #  enabled: false
+          #- name: workflow_ocr
+          #  enabled: false
+        # == TESTING ==
+        #- name: event_update_notification
+        #  enabled: false
+        - name: google_synchronization
+          enabled: false #TEMP
+        #- name: calendar_resource_management
+        #  enabled: true
+        # TODO install via CLI
+        # TODO disabling user status, files_comments, support, event_update_notification (Notifications for calendar event updates), bruteforcesettings
+        # disable tasks soon
+        # configure firstrunwizard
+        # preconfigured: share by mail - https://apps.nextcloud.com/apps/socialsharing_email

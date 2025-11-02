@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: kube-system
+  name: stackspin-local-path-provisioner-override
+data:
+  values.yaml: |
+    storageClass:
+      reclaimPolicy: Retain

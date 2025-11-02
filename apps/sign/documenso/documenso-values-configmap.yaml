@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-documenso-values
+  namespace: stackspout
+data:
+  # https://github.com/rizkyfaza20/documenso-chart/blob/main/documenso/values.yaml
+  values.yaml: |
+    # TODO verify structure matches chart
+    commonLabels:
+      stackspin.net/backupSet: "documenso"
+    podLabels:
+      stackspin.net/backupSet: "documenso"
+    # TODO Configure PVC for data & database including backup labels
+    podAnnotations:
+      backup.velero.io/backup-volumes: "data"
+    persistence:
+      enabled: true
+      existingClaim: "documenso-data"
+
+    ingress:
+      enabled: true
+      # Elaborate (TrueCharts) style
+      annotations:
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.";
+      hosts:
+        - host: "${documenso_domain}"
+          paths:
+             - path: /
+               pathType: Prefix
+      tls:
+        - secretName: documenso-tls
+          hosts:
+            - "${documenso_domain}"
+      # Bitnami style
+      hostname: "${documenso_domain}"
+      tls: true
+      certManager: true
+
+    documenso:
+      cm:
+        NEXTAUTH_SECRET: "${nextauth_secret}"
+        NEXTAUTH_URL: "https://${documenso_domain}"
+        NEXT_PRIVATE_ENCRYPTION_KEY: ""
+        NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY: ""
+        NEXT_PUBLIC_WEBAPP_URL: ""
+        NEXT_PUBLIC_MARKETING_URL: ""
+        NEXT_PRIVATE_DATABASE_URL: ""
+        NEXT_PRIVATE_DIRECT_DATABASE_URL: ""
+        NEXT_PRIVATE_SMTP_FROM_NAME: ""
+        NEXT_PRIVATE_SMTP_FROM_ADDRESS: ""
+        NEXT_PRIVATE_SMTP_HOST: ""
+        NEXT_PRIVATE_SMTP_PORT: ""
+        NEXT_PRIVATE_SMTP_SECURE: ""
+        NEXT_PRIVATE_SMTP_USER: ""
+        NEXT_PRIVATE_SMTP_PASS: ""
+        NEXT_PRIVATE_GOOGLE_CLIENT_ID: ""
+        NEXT_PRIVATE_GOOGLE_CLIENT_SECRET: ""
+        NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH: ""
+    # TODO Adjust documenso Mailing config
+    #    mailer:
+    #      enabled: "${outgoing_mail_enabled}"
+    #      host: "${outgoing_mail_smtp_host}"
+    #      port: "${outgoing_mail_smtp_port}"
+    #      username: "${outgoing_mail_smtp_user}"
+    #      password: "${outgoing_mail_smtp_password}"
+    #      fromemail: "${outgoing_mail_from_address}"
+
+    # TODO if using postgresql
+    #postgresql:
+    #  enabled: true
+    #  commonLabels:
+    #    stackspin.net/backupSet: "documenso"
+    #  global:
+    #    postgresql:
+    #      auth:
+    #        database: documenso
+    #        username: documenso
+    #        password: ""
+    #        postgresPassword: ""
+    #  primary:
+    #    persistence:
+    #      existingClaim: vikunja-postgres
+    #    podAnnotations:
+    #      backup.velero.io/backup-volumes: "data"
+
+    # TODO Adjust documenso OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      issuer: "https://${hydra_domain}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

@@ -1,0 +1,39 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: forgejo
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  path: ./apps/forge/forgejo
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  dependsOn:
+    - name: flux
+    - name: local-path-provisioner
+    - name: forgejo-secrets
+    - name: nginx
+    - name: single-sign-on
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      - kind: ConfigMap
+        name: stackspin-forgejo-kustomization-variables
+      - kind: Secret
+        name: stackspin-forgejo-variables
+      # OIDC
+      - kind: Secret
+        name: stackspin-forgejo-oauth-variables
+      - kind: ConfigMap
+        name: stackspin-single-sign-on-kustomization-variables
+      - kind: ConfigMap
+        name: stackspin-dashboard-kustomization-variables # dashboard domain for icon
+      # For the admin password
+      - kind: Secret
+        name: stackspin-single-sign-on-variables

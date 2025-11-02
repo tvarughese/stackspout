@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-taiga-kustomization-variables
+  namespace: flux-system
+data:
+  taiga_domain: sprint.${domain}

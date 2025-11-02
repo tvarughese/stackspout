@@ -1,0 +1,12 @@
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-invoiceninja-variables
+  namespace: flux-system
+spec:
+  fields:
+  - fieldName: app_key
+  - fieldName: redis_password
+  - fieldName: mariadb_password
+  - fieldName: mariadb_root_password
+  - fieldName: invoiceninja_admin_password # FIXME delete

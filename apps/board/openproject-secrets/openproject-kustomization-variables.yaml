@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-openproject-kustomization-variables
+  namespace: flux-system
+data:
+  openproject_domain: board.${domain}

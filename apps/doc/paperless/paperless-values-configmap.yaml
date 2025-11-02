@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-paperless-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # TODO verify structure matches chart
+    commonLabels:
+      stackspin.net/backupSet: "paperless"
+    podLabels:
+      stackspin.net/backupSet: "paperless"
+    # TODO Configure PVC for data & database including backup labels
+    podAnnotations:
+      backup.velero.io/backup-volumes: "data"
+    persistence:
+      enabled: true
+      existingClaim: "paperless-data"
+
+    ingress:
+      enabled: true
+      # Elaborate (TrueCharts) style
+      annotations:
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.";
+      hosts:
+        - host: "${paperless_domain}"
+          paths:
+             - path: /
+               pathType: Prefix
+      tls:
+        - secretName: paperless-tls
+          hosts:
+            - "${paperless_domain}"
+      # Bitnami style
+      hostname: "${paperless_domain}"
+      tls: true
+      certManager: true
+
+    # TODO if using postgresql
+    #postgresql:
+    #  enabled: true
+    #  commonLabels:
+    #    stackspin.net/backupSet: "paperless"
+    #  global:
+    #    postgresql:
+    #      auth:
+    #        database: paperless
+    #        username: paperless
+    #        password: ""
+    #        postgresPassword: ""
+    #  primary:
+    #    persistence:
+    #      existingClaim: vikunja-postgres
+    #    podAnnotations:
+    #      backup.velero.io/backup-volumes: "data"
+
+    # TODO Adjust paperless Mailing config
+    #    mailer:
+    #      enabled: "${outgoing_mail_enabled}"
+    #      host: "${outgoing_mail_smtp_host}"
+    #      port: "${outgoing_mail_smtp_port}"
+    #      username: "${outgoing_mail_smtp_user}"
+    #      password: "${outgoing_mail_smtp_password}"
+    #      fromemail: "${outgoing_mail_from_address}"
+
+    # TODO Adjust paperless OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      issuer: "https://${hydra_domain}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

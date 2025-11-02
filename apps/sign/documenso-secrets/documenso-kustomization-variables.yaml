@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-documenso-kustomization-variables
+  namespace: flux-system
+data:
+  documenso_domain: sign.${domain}

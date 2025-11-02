@@ -1,0 +1,9 @@
+# For kimai2
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: robjuz
+  namespace: flux-system
+spec:
+  interval: 60m
+  url: https://robjuz.github.io/helm-charts/

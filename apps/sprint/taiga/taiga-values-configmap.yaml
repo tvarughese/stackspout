@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-taiga-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # https://github.com/nemonik/taiga-helm/blob/master/values.yaml
+    commonLabels:
+      stackspin.net/backupSet: "taiga"
+    podLabels:
+      stackspin.net/backupSet: "taiga"
+
+    taigaDB:
+      persistence:
+        enabled: true
+        existingClaim: taiga-postgres
+      podAnnotations:
+        backup.velero.io/backup-volumes: "data"
+
+    taigaGateway:
+      ingress:
+        enabled: true
+        annotations:
+          kubernetes.io/tls-acme: "true"
+          nginx.ingress.kubernetes.io/configuration-snippet: |
+            more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.${domain}";
+        hosts:
+          - host: "${taiga_domain}"
+            paths:
+               - path: /
+                 pathType: Prefix
+        tls:
+          - secretName: taiga-tls
+            hosts:
+              - "${taiga_domain}"
+
+    env:
+      #taigaURL: "https://${taiga_domain}"
+      #taigaWebsocketsURL: "ws://${taiga_domain}"
+
+      enableEmail: "${outgoing_mail_enabled}"
+      emailHost: "${outgoing_mail_smtp_host}"
+      emailPort: "${outgoing_mail_smtp_port}"
+      emailHostUser: "${outgoing_mail_smtp_user}"
+      emailHostPassword: "${outgoing_mail_smtp_password}"
+      defaultFromEmail: "${outgoing_mail_from_address}"
+
+    # taiga OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      issuer: "https://${hydra_domain}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

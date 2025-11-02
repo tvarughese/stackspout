@@ -1,0 +1,12 @@
+---
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-documenso-variables
+  namespace: flux-system
+spec:
+  fields:
+  # TODO if using postgresql
+  - fieldName: postgresql_password
+  - fieldName: postgresql_postgres_password
+  - fieldName: nextauth_secret

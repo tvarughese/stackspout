@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-stirling-kustomization-variables
+  namespace: flux-system
+data:
+  stirling_domain: pdf.${domain}

@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-vikunja-test-values
+  namespace: stackspout
+data:
+  # https://kolaente.dev/vikunja/helm-chart/src/branch/main/values.yaml
+  values.yaml: |
+    vikunja:
+      image:
+        tag: unstable
+        pullPolicy: Always
+      persistence:
+        data:
+          existingClaim: vikunja-test-files
+      ingress:
+        main:
+          enabled: true
+          annotations:
+            kubernetes.io/tls-acme: "true"
+          hosts:
+            - host: "test.${vikunja_domain}"
+              paths:
+                 - path: /
+          tls:
+            - secretName: vikunja-test-tls
+              hosts:
+                - "test.${vikunja_domain}"
+      configMaps:
+        api-config:
+          data:
+            config.yml: |-
+              auth:
+                openid:
+                  # https://vikunja.io/docs/config-options/#openid
+                  # Example: https://github.com/go-vikunja/api/blob/main/config.yml.sample#L289-L312
+                  enabled: true
+                  redirecturl: "https://test.${vikunja_domain}/auth/openid/"
+                  providers:
+                    stackspin:
+                      name: Stackspin
+                      authurl: "https://${hydra_domain}"
+                      clientid: "${client_id}"
+                      clientsecret: "${client_secret}"
+                      scope: openid profile email name
+                      requireavailability: true
+              mailer:
+                enabled: "${outgoing_mail_enabled}"
+                host: "${outgoing_mail_smtp_host}"
+                port: "${outgoing_mail_smtp_port}"
+                username: "${outgoing_mail_smtp_user}"
+                password: "${outgoing_mail_smtp_password}"
+                fromemail: "${outgoing_mail_from_address}"
+                forcessl: true
+              service:
+                publicurl: "https://test.${vikunja_domain}"
+                timezone: "CET"
+                JWTSecret: "${jwt}"
+                motd: "This is a test instance, do not use for production data as it can vanish without notice!"
+                enableopenidteamusersearch: true
+              database:
+                type: postgres
+                host: vikunja-test-postgresql
+                password: "${postgresql_password}"
+              log:
+                #path: "/app/vikunja"
+                #http: file
+                level: debug
+                maillevel: debug
+                database: stderr
+                databaselevel: debug
+              defaultsettings:
+                avatar_provider: gravatar
+                discoverable_by_name: true
+                discoverable_by_email: true
+                week_start: 1
+                timezone: CET
+    postgresql:
+      enabled: true
+      auth:
+        database: vikunja
+        username: vikunja
+        password: "${postgresql_password}"
+        postgresPassword: "${postgresql_admin_password}"
+      primary:
+        persistence:
+          existingClaim: vikunja-test-postgres
+    typesense:
+      enabled: false

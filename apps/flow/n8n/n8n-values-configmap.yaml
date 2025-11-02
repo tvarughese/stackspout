@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-n8n-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # https://github.com/8gears/n8n-helm-chart/blob/main/charts/n8n/values.yaml
+    image:
+      tag: "1.114.2"
+
+    n8n:
+      encryption_key: "${encryption_key}"
+
+    commonLabels:
+      stackspin.net/backupSet: "n8n"
+    podLabels:
+      stackspin.net/backupSet: "n8n"
+    podAnnotations:
+      backup.velero.io/backup-volumes: "data"
+
+    persistence:
+      enabled: true
+      type: existing
+      existingClaim: "n8n-data"
+
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.${domain}";
+      hosts:
+        - host: "${n8n_domain}"
+          paths: [ "/" ]
+      tls:
+        - secretName: n8n-tls
+          hosts:
+            - "${n8n_domain}"
+
+    config:
+      database:
+        type: sqlite
+      host: "${n8n_domain}"
+      port: 443
+      protocol: https
+      generic:
+        timezone: "Europe/Berlin"
+    extraEnv:
+      #node-fetch
+      NODE_FUNCTION_ALLOW_EXTERNAL: "*"
+      N8N_EMAIL_MODE: "smtp" # "${outgoing_mail_enabled}"
+      N8N_SMTP_HOST: "${outgoing_mail_smtp_host}"
+      N8N_SMTP_PORT: "${outgoing_mail_smtp_port}"
+      N8N_SMTP_USER: "${outgoing_mail_smtp_user}"
+      N8N_SMTP_PASS: "${outgoing_mail_smtp_password}"
+      N8N_SMTP_SENDER: "${outgoing_mail_from_address}"
+      N8N_EDITOR_BASE_URL: "${n8n_domain}"
+      N8N_TEMPLATES_ENABLED: true

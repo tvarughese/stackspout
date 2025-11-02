@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: paperless
+  namespace: stackspout
+spec:
+  releaseName: paperless
+  chart:
+    spec:
+      chart: paperless
+      version: 1.0 # TODO
+      sourceRef:
+        kind: HelmRepository
+        name: zekker6
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-paperless-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-paperless-override
+      optional: true
+    - kind: Secret
+      name: stackspin-paperless-override
+      optional: true

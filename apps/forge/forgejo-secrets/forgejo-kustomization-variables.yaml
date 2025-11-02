@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-forgejo-kustomization-variables
+  namespace: flux-system
+data:
+  forgejo_domain: forge.${domain}

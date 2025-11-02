@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-calcom-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    postgresql:
+      # https://github.com/Pyrrha/calcom-helm/blob/main/charts/calcom-stack/values.yaml
+      enabled: true
+      commonLabels:
+        stackspin.net/backupSet: "calcom"
+      # https://github.com/bitnami/charts/tree/main/bitnami/postgresql/#postgresql-common-parameters
+      auth:
+        database: calcom
+        username: calcom
+        password: "${postgresql_password}"
+        postgresPassword: "${postgresql_postgres_password}"
+      primary:
+        persistence:
+          existingClaim: calcom-postgres
+        podAnnotations:
+          backup.velero.io/backup-volumes: "data"
+
+    calcom:
+      # https://github.com/Pyrrha/calcom-helm/blob/main/charts/calcom/values.yaml
+      #image:
+      #  tag: v4.5.10
+      secretRef: "stackspin-calcom-keys"
+      labels:
+        stackspin.net/backupSet: "calcom"
+      ingress:
+        enabled: true
+        annotations:
+          kubernetes.io/tls-acme: "true"
+          nginx.ingress.kubernetes.io/configuration-snippet: |
+            more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.${domain}";
+        hosts:
+          - host: "${calcom_domain}"
+            paths:
+               - path: /
+                 pathType: Prefix
+        tls:
+          - secretName: calcom-tls
+            hosts:
+              - "${calcom_domain}"

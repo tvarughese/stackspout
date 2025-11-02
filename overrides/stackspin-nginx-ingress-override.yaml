@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: stackspin
+  name: stackspin-nginx-override
+data:
+  values.yaml: |
+    # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
+    controller:
+      service:
+        externalTrafficPolicy: "Cluster"
+        annotations:
+          metallb.universe.tf/allow-shared-ip: "share-ipv4"

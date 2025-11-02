@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: n8n
+  namespace: stackspout
+spec:
+  releaseName: n8n
+  chart:
+    spec:
+      chart: n8n
+      # https://github.com/8gears/n8n-helm-chart/blob/master/Chart.yaml
+      version: 0.25.2 # TODO needs migration to 1.0 - https://github.com/8gears/n8n-helm-chart/releases
+      sourceRef:
+        kind: HelmRepository
+        name: 8gears
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-n8n-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-n8n-override
+      optional: true
+    - kind: Secret
+      name: stackspin-n8n-override
+      optional: true

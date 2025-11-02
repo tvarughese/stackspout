@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-gatus-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # https://github.com/minicloudlabs/helm-charts/blob/main/charts/gatus/values.yaml
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/tls-acme: "true"
+      hosts: [ "${gatus_domain}" ]
+      tls:
+        - secretName: gatus-tls
+          hosts:
+            - "${gatus_domain}"
+
+    persistence:
+      enabled: true
+      existingClaim: "gatus-data"
+
+    config:
+      storage:
+        # caching: true # when large
+        type: sqlite
+        path: /data/gatus.sqlite
+      security:
+        # https://twin.sh/articles/56/securing-gatus-with-oidc-using-auth0
+        #oidc:
+        #  issuer-url: "https://${hydra_domain}/"
+        #  redirect-url: "https://${gatus_domain}/authorization-code/callback"
+        #  client-id: "${client_id}"
+        #  client-secret: "${client_secret}"
+        #  scopes: ["openid"]
+        #  #autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'
+      alerting:
+        # TODO no emails arriving?
+        # https://github.com/TwiN/gatus?tab=readme-ov-file#configuring-email-alerts
+        email:
+          from: "${outgoing_mail_from_address}"
+          username: "${outgoing_mail_smtp_user}"
+          password: "${outgoing_mail_smtp_password}"
+          host: "${outgoing_mail_smtp_host}"
+          port: ${outgoing_mail_smtp_port}
+          to: "${admin_email}"
+          client:
+            insecure: false
+          default-alert:
+            enabled: ${outgoing_mail_enabled}
+            #description: "health check failed"
+            send-on-resolved: true
+            failure-threshold: 9
+            success-threshold: 5
+        zulip:
+          bot-email: gatus-bot@${zulip_domain}
+          bot-api-key: ${zulip_monitor_api_key}
+          domain: ${zulip_domain}
+          channel-id: ${zulip_monitor_channel}
+          default-alert:
+            enabled: true
+            send-on-resolved: true
+            failure-threshold: 5
+            success-threshold: 3
+      maintenance:
+        enabled: false
+        start: 20:00
+        duration: 6h
+        every: [Saturday, Sunday]
+      connectivity:
+        checker:
+          target: 1.1.1.1:53
+          interval: 60s
+      ui:
+        header: "${org_name} Toolstatus"
+        title: "${org_name} Monitoring"
+
+      x-default-endpoint: &defaults
+        group: ${org_name}
+        interval: 2m
+        conditions:
+          - "[STATUS] == 200"
+        #alerts:
+        #  - type: zulip
+        #    send-on-resolved: true
+        #  - type: telegram
+        #    send-on-resolved: true
+        #    failure-threshold: 9
+      endpoints:
+        - name: "Nextcloud Files"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://files.${domain}/status.php"
+        - name: "Nextcloud Maintenance Mode"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://files.${domain}/status.php"
+          conditions:
+            - "[BODY].maintenance == false"
+        - name: "Zulip Teamchat"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://chat.${domain}"
+        - name: "Vikunja Tasks ${domain_extra}"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://do.${domain_extra}"
+        - name: "Vikunja Tasks ${domain_extra} API"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://do.${domain_extra}/api/v1/info"
+          conditions:
+            - "len([BODY].auth.openid_connect.providers) > 0"
+        - name: "Vikunja Tasks"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://do.${domain}"
+        - name: "Vikunja Tasks API"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://do.${domain}/api/v1/info"
+          conditions:
+            - "len([BODY].auth.openid_connect.providers) > 0"
+        #- name: "OpenProject Boards"
+        #  <<: *defaults
+        #  group: "Stackspout"
+        #  url: "https://board.${domain}"
+        - name: "HedgeDoc Notes"
+          <<: *defaults
+          group: "Stackspout"
+          url: "https://note.${domain}"
+        - name: "InvoiceNinja Billing"
+          url: "https://ninja.${domain}"
+          <<: *defaults
+          group: "Stackspout"
+        - name: "Zammad Support"
+          url: "https://support.${domain}"
+          <<: *defaults
+          group: "Stackspout"
+        - name: "Forgejo Repositories"
+          url: "https://forge.${domain}"
+          <<: *defaults
+          group: "Stackspout"
+        - name: "Cal.com Appointment Booking"
+          url: "https://meet.${domain}"
+          <<: *defaults
+          group: "Stackspout"
+        - name: "Stackspin Dashboard"
+          url: "https://dashboard.${domain}/web/recovery"
+          <<: *defaults
+          group: "Stackspout"
+        - name: "Gatus Health Dashboard"
+          url: "https://status.${domain}"
+          <<: *defaults
+          group: "Stackspout"
+
+        - name: "${org_name} Homepage"
+          url: "https://${domain}"
+          <<: *defaults
+          group: "${org_name}"
+        - name: "${org_name} Teampage"
+          url: "https://${domain}/team"
+          <<: *defaults
+          group: "${org_name}"
+
+        - name: "Mailserver STARTTLS"
+          url: "starttls://${outgoing_mail_smtp_host}:587"
+          <<: *defaults
+          interval: 7m
+          client:
+            timeout: 15s
+          conditions:
+            - "[CONNECTED] == true"
+        - name: "Mailserver TLS"
+          url: "tls://${outgoing_mail_smtp_host}:465"
+          <<: *defaults
+          interval: 2m
+          client:
+            timeout: 15s
+          conditions:
+            - "[CONNECTED] == true"
+
+        - name: "Main Admin Panel"
+          url: "https://main.iridion.it:999"
+          <<: *defaults
+          group: "Iridion"
+        - name: "Second Admin Panel"
+          url: "https://ns2.iridion.it:999"
+          <<: *defaults
+          group: "Iridion"
+        - name: "Webmail"
+          url: "https://webmail.iridion.it"
+          <<: *defaults
+          group: "Iridion"

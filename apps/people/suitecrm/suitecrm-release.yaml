@@ -1,0 +1,28 @@
+# https://artifacthub.io/packages/helm/bitnami/suitecrm
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: suitecrm
+  namespace: stackspout
+spec:
+  releaseName: suitecrm
+  chart:
+    spec:
+      chart: suitecrm
+      version: 14.1.1
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-suitecrm-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-suitecrm-override
+      optional: true
+    - kind: Secret
+      name: stackspin-suitecrm-override
+      optional: true

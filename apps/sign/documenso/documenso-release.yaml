@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: documenso
+  namespace: stackspout
+spec:
+  releaseName: documenso
+  chart:
+    spec:
+      chart: documenso
+      version: 0.0.6
+      sourceRef:
+        kind: HelmRepository
+        name: rizkyfaza20
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-documenso-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-documenso-override
+      optional: true
+    - kind: Secret
+      name: stackspin-documenso-override
+      optional: true

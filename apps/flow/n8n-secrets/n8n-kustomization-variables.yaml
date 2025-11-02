@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-n8n-kustomization-variables
+  namespace: flux-system
+data:
+  n8n_domain: flow.${domain}

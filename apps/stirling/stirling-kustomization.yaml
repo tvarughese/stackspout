@@ -1,0 +1,35 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: stirling
+  namespace: flux-system
+spec:
+  interval: 5m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  path: ./apps/stirling/stirling
+  sourceRef:
+    kind: GitRepository
+    name: stackspout
+  dependsOn:
+    - name: flux
+    - name: local-path-provisioner
+    - name: stirling-secrets
+    - name: nginx
+    - name: single-sign-on
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: stackspin-cluster-variables
+      - kind: ConfigMap
+        name: stackspin-stirling-kustomization-variables
+      - kind: Secret
+        name: stackspin-stirling-variables
+      # OIDC
+      - kind: Secret
+        name: stackspin-stirling-oauth-variables
+      - kind: ConfigMap
+        name: stackspin-single-sign-on-kustomization-variables

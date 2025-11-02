@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-stirling-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # TODO verify structure matches chart
+    commonLabels:
+      stackspin.net/backupSet: "stirling"
+    podLabels:
+      stackspin.net/backupSet: "stirling"
+    # TODO Configure PVC for data & database including backup labels
+    podAnnotations:
+      backup.velero.io/backup-volumes: "data"
+    persistence:
+      enabled: true
+      existingClaim: "stirling-data"
+
+    ingress:
+      enabled: true
+      # Elaborate (TrueCharts) style
+      annotations:
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.";
+      hosts:
+        - host: "${stirling_domain}"
+          paths:
+             - path: /
+               pathType: Prefix
+      tls:
+        - secretName: stirling-tls
+          hosts:
+            - "${stirling_domain}"
+      # Bitnami style
+      hostname: "${stirling_domain}"
+      tls: true
+      certManager: true
+
+    # TODO if using postgresql
+    #postgresql:
+    #  enabled: true
+    #  commonLabels:
+    #    stackspin.net/backupSet: "stirling"
+    #  global:
+    #    postgresql:
+    #      auth:
+    #        database: stirling
+    #        username: stirling
+    #        password: ""
+    #        postgresPassword: ""
+    #  primary:
+    #    persistence:
+    #      existingClaim: vikunja-postgres
+    #    podAnnotations:
+    #      backup.velero.io/backup-volumes: "data"
+
+    # TODO Adjust stirling Mailing config
+    #    mailer:
+    #      enabled: "${outgoing_mail_enabled}"
+    #      host: "${outgoing_mail_smtp_host}"
+    #      port: "${outgoing_mail_smtp_port}"
+    #      username: "${outgoing_mail_smtp_user}"
+    #      password: "${outgoing_mail_smtp_password}"
+    #      fromemail: "${outgoing_mail_from_address}"
+
+    # TODO Adjust stirling OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      issuer: "https://${hydra_domain}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

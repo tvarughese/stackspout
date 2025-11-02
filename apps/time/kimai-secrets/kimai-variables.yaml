@@ -1,0 +1,10 @@
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-kimai-variables
+  namespace: flux-system
+data:
+  password: "{{ 32 | generate_password | b64encode }}"
+  secret: "{{ 32 | generate_password | b64encode }}"
+  mariadb_password: "{{ 32 | generate_password | b64encode }}"
+  mariadb_root_password: "{{ 32 | generate_password | b64encode }}"

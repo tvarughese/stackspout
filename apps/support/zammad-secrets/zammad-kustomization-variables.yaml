@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-zammad-kustomization-variables
+  namespace: flux-system
+data:
+  zammad_domain: support.${domain}

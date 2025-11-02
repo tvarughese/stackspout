@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-paperless-kustomization-variables
+  namespace: flux-system
+data:
+  paperless_domain: doc.${domain}

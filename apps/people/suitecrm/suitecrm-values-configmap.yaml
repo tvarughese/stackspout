@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-suitecrm-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    ingress:
+      enabled: true
+      primary: false
+      hostname: "people.${domain}"
+      tls: true
+      certManager: true
+    suitecrmUsername: "admin"
+    suitecrmEmail: "${admin_email}"
+    suitecrmPassword: "${password}"
+    mariadb:
+      auth:
+        password: "${mariadb_password}"
+        rootPassword: "${mariadb_root_password}"
+    # TODO Adjust OIDC SSO to service
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      customAuthUrl: "https://people.${domain}/login/login"

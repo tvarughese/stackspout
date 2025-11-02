@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-calcom-kustomization-variables
+  namespace: flux-system
+data:
+  calcom_domain: meet.${domain}

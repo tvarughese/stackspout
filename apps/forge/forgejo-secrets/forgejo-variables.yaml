@@ -1,0 +1,12 @@
+---
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-forgejo-variables
+  namespace: flux-system
+spec:
+  fields:
+  - fieldName: forgejo_admin_password # FIXME delete
+  - fieldName: lfs_jwt
+  - fieldName: postgresql_password
+  - fieldName: postgresql_admin_password

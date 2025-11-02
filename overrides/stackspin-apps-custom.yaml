@@ -1,0 +1,67 @@
+# This list of apps is loaded by the Stackspin dashboard on startup,
+# inserting any missing entries into the Stackspin database (`apps` table).
+# Processed in https://open.greenhost.net/stackspin/dashboard/-/blob/main/backend/areas/apps/models.py?ref_type=heads#L135
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-apps-custom
+  namespace: flux-system
+data:
+  gatus: |
+    name: "Gatus Monitoring"
+    version: "5.18.1"
+    url: "https://status.${domain}"
+  forgejo: |
+    name: "Forgejo Git Repositories"
+    version: "12.0.1"
+    url: "https://forge.${domain}"
+  vikunja: |
+    name: "Vikunja ${org_name} Tasks"
+    version: "0.22"
+    url: "https://do.${domain}"
+  vikunja-extra: |
+    name: "Vikunja ${domain_extra} Tasks"
+    version: "0.25"
+    url: "https://do.${domain_extra}"
+  invoiceninja: |
+    name: "Invoiceninja Billing (separate account)"
+    version: "5.12"
+    url: "https://ninja.${domain}"
+  zammad: |
+    name: "Zammad Customer Support (separate account)"
+    version: "6.3.1"
+    url: "https://support.${domain}"
+  cal: |
+    name: "Cal Appointment Booking (self-registration)"
+    version: "3.7.11"
+    url: "https://meet.${domain}"
+  openproject: |
+    name: "OpenProject Boards (self-registration)"
+    version: "16.3.1"
+    url: "https://board.${domain}"
+  n8n: |
+    name: "n8n Integrations (Admins only)"
+    # version: "1.58.2"
+    url: "https://flow.${domain}"
+  limesurvey: |
+    name: "LimeSurvey ${domain_extra} (separate account)"
+    external: true
+    url: "https://ask.${domain_extra}"
+  handbook: |
+    name: "FTT Handbook"
+    external: true
+    url: "https://about.${domain}"
+---
+# This list of OAuth clients with their corresponding apps is loaded by the
+# Stackspin dashboard on startup, and it will insert any missing entries into
+# the Stackspin database (`oauthclient_apps` table).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-oauthclients-custom
+  namespace: flux-system
+data:
+  vikunja: vikunja
+  vikunja-extra: vikunja-extra
+  forgejo: forgejo
+  gatus: gatus

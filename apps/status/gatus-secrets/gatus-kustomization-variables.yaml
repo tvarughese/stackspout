@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-gatus-kustomization-variables
+  namespace: flux-system
+data:
+  gatus_domain: status.${domain}

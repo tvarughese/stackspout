@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-openproject-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    commonLabels:
+      stackspin.net/backupSet: "openproject"
+    podLabels:
+      stackspin.net/backupSet: "openproject"
+    # TODO Configure PVC for data & database including backup labels
+    podAnnotations:
+      backup.velero.io/backup-volumes: "data"
+    persistence:
+      enabled: true
+      existingClaim: "openproject-data"
+
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.";
+      host: "${openproject_domain}"
+      path: /
+      pathType: Prefix
+      tls:
+        enabled: true
+        secretName: openproject-tls
+
+    postgresql:
+      bundled: true
+      commonLabels:
+        stackspin.net/backupSet: "openproject"
+      global:
+        postgresql:
+          auth:
+            database: openproject
+            username: openproject
+            password: "${postgresql_password}"
+            postgresPassword: "${postgresql_admin_password}"
+      primary:
+        persistence:
+          existingClaim: openproject-postgres
+        podAnnotations:
+          backup.velero.io/backup-volumes: "data"
+
+    containerSecurityContext:
+      readOnlyRootFilesystem: false
+      #enabled: true
+      #runAsUser: 1000
+      #runAsGroup: 1000
+      #allowPrivilegeEscalation: false
+      #capabilities:
+      #  drop:
+      #    - "ALL"
+      #seccompProfile:
+      #  type: "RuntimeDefault"
+      #runAsNonRoot: true
+
+    openproject:
+      #useTmpVolumes: false
+      admin_user:
+        password: "${userbackend_admin_password}"
+        password_reset: "false"
+        name: "${org_name} Admin"
+        mail: "${admin_email}"
+
+      ## Define OpenID Connect providers
+      #oidc:
+      #  enabled: false
+      #  provider: "Keycloak"
+      #  displayName: "Keycloak"
+      #  host: ""
+      #  identifier: ""
+      #  secret: ""
+      #  authorizationEndpoint: ""
+      #  tokenEndpoint: ""
+      #  userinfoEndpoint: ""
+      #  endSessionEndpoint: ""
+      #  scope: "[openid]"
+
+    # TODO Adjust openproject Mailing config
+    #    mailer:
+    #      enabled: "${outgoing_mail_enabled}"
+    #      host: "${outgoing_mail_smtp_host}"
+    #      port: "${outgoing_mail_smtp_port}"
+    #      username: "${outgoing_mail_smtp_user}"
+    #      password: "${outgoing_mail_smtp_password}"
+    #      fromemail: "${outgoing_mail_from_address}"
+    # TODO Adjust openproject OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      issuer: "https://${hydra_domain}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

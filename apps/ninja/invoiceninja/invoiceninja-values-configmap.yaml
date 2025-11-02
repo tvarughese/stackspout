@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-invoiceninja-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # https://github.com/invoiceninja/dockerfiles/blob/master/charts/invoiceninja/values.yaml
+    image:
+      # https://hub.docker.com/r/invoiceninja/invoiceninja/tags
+      tag: "5.12"
+      pullPolicy: Always
+    ingress:
+      enabled: true
+      hostname: "${invoiceninja_domain}"
+      tls: true
+      certManager: true
+      annotations:
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.${domain}";
+    commonLabels:
+      stackspin.net/backupSet: "invoiceninja"
+    podLabels:
+      stackspin.net/backupSet: "invoiceninja"
+    podAnnotations:
+      backup.velero.io/backup-volumes: "public"
+    persistence:
+      public:
+        existingClaim: "invoiceninja-data"
+    mariadb:
+      # https://github.com/bitnami/charts/blob/master/bitnami/mariadb/values.yaml
+      auth:
+        password: "${mariadb_password}"
+        rootPassword: "${mariadb_root_password}"
+      primary:
+        persistence:
+          existingClaim: "invoiceninja-mariadb"
+        podAnnotations:
+          backup.velero.io/backup-volumes: "data"
+      commonLabels:
+        stackspin.net/backupSet: "invoiceninja"
+    redis:
+      commonLabels:
+        stackspin.net/backupSet: "invoiceninja"
+      # Redis is only cache, so no pvc needed: https://invoiceninja.github.io/docs/env-variables/
+      auth:
+        password: "${redis_password}"
+
+    appKey: "${app_key}"
+    appURL: "https://${invoiceninja_domain}"
+    userEmail: "${admin_email}"
+    userPassword: "${userbackend_admin_password}"
+    mailer: "smtp" # FIXME use "${outgoing_mail_enabled}"
+    # https://github.com/invoiceninja/invoiceninja/blob/v5-stable/config/mail.php#L36
+    extraEnvVars:
+      - name: APP_CIPHER
+        value: AES-256-CBC
+      - name: MAIL_MAILER
+        value: smtp
+      - name: MAIL_HOST
+        value: "${outgoing_mail_smtp_host}"
+      - name: MAIL_PORT
+        value: "${outgoing_mail_smtp_port}"
+      - name: MAIL_USERNAME
+        value: "${outgoing_mail_smtp_user}"
+      - name: MAIL_PASSWORD
+        value: "${outgoing_mail_smtp_password}"
+      - name: MAIL_EHLO_DOMAIN
+        value: "${outgoing_mail_domain}"
+      - name: MAIL_FROM_ADDRESS
+        value: "${outgoing_mail_from_address}"
+      - name: MAIL_FROM_NAME
+        value: "${org_name}"
+
+    # Missing: invoiceninja OpenID Connect Single Sign-On Configuration
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

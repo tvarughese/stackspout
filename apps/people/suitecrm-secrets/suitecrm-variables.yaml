@@ -1,0 +1,10 @@
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-suitecrm-variables
+  namespace: flux-system
+data:
+  fields:
+  - fieldName: password
+  - fieldName: mariadb_password
+  - fieldName: mariadb_root_password

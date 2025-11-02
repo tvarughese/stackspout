@@ -1,0 +1,10 @@
+apiVersion: secretgenerator.mittwald.de/v1alpha1
+kind: StringSecret
+metadata:
+  name: stackspin-vikunja-variables
+  namespace: flux-system
+spec:
+  fields:
+  - fieldName: jwt
+  - fieldName: postgresql_password
+  - fieldName: postgresql_admin_password

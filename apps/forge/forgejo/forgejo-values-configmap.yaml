@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-forgejo-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/proxy-body-size: "1g"
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "Content-Security-Policy: frame-ancestors 'self' files.${domain}";
+      hosts:
+        - host: "${forgejo_domain}"
+          paths:
+             - path: /
+               pathType: Prefix
+      tls:
+        - secretName: forgejo-tls
+          hosts:
+            - "${forgejo_domain}"
+
+    gitea:
+      admin:
+        username: "forgejo"
+        email: "${admin_email}"
+        password: "${userbackend_admin_password}"
+      # https://codeberg.org/forgejo-contrib/forgejo-helm#oauth2-settings
+      oauth:
+        - name: Stackspin
+          provider: "openidConnect"
+          key: "${client_id}"
+          secret: "${client_secret}"
+          autoDiscoverUrl: "https://${hydra_domain}/.well-known/openid-configuration"
+          iconUrl: "https://${dashboard_domain}/favicon-32x32.png"
+      # https://forgejo.org/docs/latest/admin/config-cheat-sheet/
+      config:
+        database:
+          DB_TYPE: postgres
+        session:
+          PROVIDER: db
+        cache:
+          ADAPTER: memory
+        queue:
+          TYPE: level
+        indexer:
+          ISSUE_INDEXER_TYPE: bleve
+          REPO_INDEXER_ENABLED: true
+
+        APP_NAME: "Forging ${org_name}"
+        repository:
+          DEFAULT_PUSH_CREATE_PRIVATE: false
+          ENABLE_PUSH_CREATE_USER: true
+          ENABLE_PUSH_CREATE_ORG: true
+          DEFAULT_REPO_UNITS: "repo.code,repo.releases,repo.issues,repo.pulls"
+          MAX_CREATION_LIMIT: 99
+        project:
+          PROJECT_BOARD_BASIC_KANBAN_TYPE: "Done, Doing, Todo"
+          # PROJECT_BOARD_BUG_TRIAGE_TYPE: Needs Triage, High Priority, Low Priority, Closed
+        server:
+          LANDING_PAGE: login
+          ROOT_URL: "https://${forgejo_domain}"
+          LFS_START_SERVER: true
+          LFS_JWT_SECRET: "${lfs_jwt}"
+          OFFLINE_MODE: false
+        openid:
+          ENABLE_OPENID_SIGNUP: true
+        service:
+          ENABLE_NOTIFY_MAIL: true
+          #DISABLE_REGISTRATION: true
+          # TODO this is needed to login as admin, check SSO admin connection
+          ENABLE_INTERNAL_SIGNIN: false
+          ENABLE_BASIC_AUTHENTICATION: false
+          ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+          DEFAULT_USER_VISIBILITY: "limited"
+          DEFAULT_ORG_MEMBER_VISIBLE: true
+          # EMAIL_DOMAIN_ALLOWLIST
+        admin:
+          SEND_NOTIFICATION_EMAIL_ON_NEW_USER: true
+        mailer:
+          ENABLED: "${outgoing_mail_enabled}"
+          SMTP_ADDR: "${outgoing_mail_smtp_host}"
+          SMTP_PORT: "${outgoing_mail_smtp_port}"
+          USER: "${outgoing_mail_smtp_user}"
+          PASSWD: "${outgoing_mail_smtp_password}"
+          FROM: "${outgoing_mail_from_address}"
+          # SUBJECT_PREFIX
+          # forcessl: true
+        cors:
+          ENABLED: true
+          SCHEME: "https"
+          ALLOW_DOMAIN: "files.${domain}"
+          ALLOW_CREDENTIALS: true
+        # log:
+          # LEVEL: "Debug"
+      podAnnotations:
+        backup.velero.io/backup-volumes: "data"
+    persistence:
+      enabled: true
+      mount: true
+      create: false
+      claimName: forgejo-data
+      labels:
+        stackspin.net/backupSet: "forgejo"
+    deployment:
+      labels:
+        stackspin.net/backupSet: "forgejo"
+    podLabels:
+      stackspin.net/backupSet: "forgejo"
+
+    redis-cluster:
+      enabled: false
+    postgresql-ha:
+      enabled: false
+    postgresql:
+      enabled: true
+      image:
+        tag: "11-debian-11"
+      commonLabels:
+        stackspin.net/backupSet: "forgejo"
+      global:
+        postgresql:
+          auth:
+            database: gitea
+            username: gitea
+            password: gitea # "${postgresql_password}"
+            postgresPassword: "${postgresql_admin_password}"
+      primary:
+        podAnnotations:
+          backup.velero.io/backup-volumes: "data"
+        persistence:
+          existingClaim: forgejo-postgres
+
+    service:
+      ssh:
+        type: LoadBalancer
+        hostPort: 22
+        externalTrafficPolicy: "Cluster"
+        loadBalancerIP: "${ip_address}"
+        annotations:
+          metallb.universe.tf/allow-shared-ip: "share-ipv4"
+
+    replicaCount: 1
+    strategy:
+      type: 'RollingUpdate'
+      rollingUpdate:
+        maxSurge: '25%'
+        maxUnavailable: '100%'

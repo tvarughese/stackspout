@@ -1,0 +1,21 @@
+apiVersion: hydra.ory.sh/v1alpha1
+kind: OAuth2Client
+metadata:
+  name: forgejo-oauth-client
+  # Has to live in the same namespace as the stackspin-*-oauth-variables secret
+  namespace: flux-system
+spec:
+  # TODO copied from wekan: https://github.com/wekan/wekan/wiki/Keycloak
+  grantTypes:
+    - authorization_code
+    - refresh_token
+    - client_credentials
+    - implicit
+  responseTypes:
+    - id_token
+    - code
+  scope: "openid profile email stackspin_roles"
+  secretName: stackspin-forgejo-oauth-variables
+  redirectUris:
+    - https://${forgejo_domain}/user/oauth2/Stackspin/callback
+  tokenEndpointAuthMethod: client_secret_post

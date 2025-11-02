@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: calcom
+  namespace: stackspout
+spec:
+  releaseName: calcom
+  chart:
+    spec:
+      # https://github.com/Pyrrha/calcom-helm/blob/main/charts/calcom-stack/Chart.yaml
+      chart: calcom-stack
+      version: 0.4.2 # Next one needs psql upgrade
+      sourceRef:
+        kind: HelmRepository
+        name: calcom
+        namespace: flux-system
+  interval: 5m
+  valuesFrom:
+    - kind: ConfigMap
+      name: stackspin-calcom-values
+      optional: false
+    # Allow overriding values by ConfigMap or Secret
+    - kind: ConfigMap
+      name: stackspin-calcom-override
+      optional: true
+    - kind: Secret
+      name: stackspin-calcom-override
+      optional: true

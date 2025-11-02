@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ninja-kustomization.yaml
+  - do-kustomization.yaml
+  - forge-kustomization.yaml
+  - db-kustomization.yaml
+  - support-kustomization.yaml
+  - flow-kustomization.yaml
+  - meet-kustomization.yaml
+  - status-kustomization.yaml
+  - design-kustomization.yaml
+  - board-kustomization.yaml
+  # WIP - doc-kustomization.yaml
+  # WIP - sign-kustomization.yaml
+  # WIP - stirling-kustomization.yaml
+  # WIP - video-kustomization.yaml #how to handle storage?
+  #- sprint-kustomization.yaml #charts outdated

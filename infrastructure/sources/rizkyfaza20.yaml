@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: rizkyfaza20
+  namespace: flux-system
+spec:
+  interval: 60m
+  url: https://rizkyfaza20.github.io/helm-charts
+  # https://github.com/rizkyfaza20/documenso-chart

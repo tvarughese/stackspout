@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-kimai-values
+  namespace: stackspout
+data:
+  values.yaml: |
+    # https://github.com/robjuz/helm-charts/tree/master/charts/kimai2#parameters
+    image:
+      tag: apache-1.21.0-prod
+    kimaiAppSecret: "${secret}"
+    kimaiAdminEmail: "${admin_email}"
+    kimaiAdminPassword: "${userbackend_admin_password}"
+    kimaiMailerUrl: "smtp://${outgoing_mail_smtp_user}:${outgoing_mail_smtp_password}@${outgoing_mail_smtp_host}?encryption=tls&auth_mode=plain"
+    kimaiMailerFrom: "${outgoing_mail_from_address}"
+    ingress:
+      enabled: true
+      certManager: true
+      tls: true
+      hostname: "time.${domain}"
+    persistence:
+      existingClaim: kimai-data
+    mariadb:
+      auth:
+        password: "${mariadb_password}"
+        rootPassword: "${mariadb_root_password}"
+    #    - name: Stackspin
+    #      key: "${client_id}"
+    #      secret: "${client_secret}"
+    #      autoDiscoverUrl: 'https://${hydra_domain}/.well-known/openid-configuration'

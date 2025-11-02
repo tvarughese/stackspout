@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackspin-peertube-kustomization-variables
+  namespace: flux-system
+data:
+  peertube_domain: video.${domain}
